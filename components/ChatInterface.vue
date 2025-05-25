@@ -1,7 +1,7 @@
 <!-- components/ChatInterface.vue -->
 <template>
     <div class="chat-container">
-        <!-- Banner dinámico -->
+        <!-- Banner dinámico
         <div class="banner" v-if="currentBanner">
             <div class="banner-content" :class="'banner-' + currentBanner.type">
                 <h2>{{ currentBanner.title }}</h2>
@@ -12,9 +12,11 @@
             </div>
         </div>
 
-        <div class="banner-image">
-            <img src="/banner1.png" />
-        </div>
+        <div class="banner">
+            <div class="banner-image">
+                <img src="/banner1.png" />
+            </div>
+        </div> -->
 
         <!-- Área de chat -->
         <div class="chat-area" ref="chatArea">
@@ -79,8 +81,8 @@
         </div>
 
         <!-- Preguntas sugeridas -->
-        <div v-if="suggestions.length > 0" class="suggested-questions">
-            <button v-for="(question, index) in suggestions" :key="index" class="btn-question"
+        <div v-if="qSuggestions.length > 0" class="suggested-questions">
+            <button v-for="(question, index) in qSuggestions" :key="index" class="btn-question"
                 @click="sendSuggestedQuestion(question)">
                 {{ question }}
             </button>
@@ -129,6 +131,7 @@ const resultsTitle = ref('')
 const bookingUrl = ref<string | null>(null)
 const bookingButtonText = ref('Ver disponibilidad')
 const context = ref({})
+const qSuggestions = ref<string[]>([])
 
 onMounted(async () => {
     await initializeChat()
@@ -152,10 +155,12 @@ const initializeChat = async () => {
     }
 
     // Si no hay mensajes, inicializar conversación
+    console.log('Mensajes iniciales:', messages.value.length)
     if (messages.value.length === 0) {
-        await initConversation()
+        console.log('Conversación inicializada')
+        //await initConversation()
         // Sugerir preguntas iniciales
-        suggestions.value = [
+        qSuggestions.value = [
             '¿Qué puedo hacer en Samaná?',
             '¿Dónde puedo alojarme en Samaná?',
             '¿Cuáles son los mejores restaurantes?'
@@ -381,6 +386,7 @@ const saveConversation = () => {
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 30vh;
     max-width: 1200px;
     margin: 0 auto;
     background-color: #fff;

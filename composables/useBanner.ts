@@ -83,7 +83,7 @@ export const useBanner = () => {
                 imageUrl: "/banner-accommodation.png",
                 action: {
                     text: "Ver alojamientos",
-                    url: "/hotels"
+                    url: "/space"
                 }
             },
             restaurant: {
@@ -92,7 +92,7 @@ export const useBanner = () => {
                 imageUrl: "/banner-restaurant.png",
                 action: {
                     text: "Ver restaurantes",
-                    url: "/restaurants"
+                    url: "/restaurant"
                 }
             },
             tour: {
@@ -101,7 +101,7 @@ export const useBanner = () => {
                 imageUrl: "/banner-tours.png",
                 action: {
                     text: "Ver tours",
-                    url: "/tours"
+                    url: "/tour"
                 }
             },
             transport: {
@@ -110,7 +110,7 @@ export const useBanner = () => {
                 imageUrl: "/banner-transport.png",
                 action: {
                     text: "Ver opciones",
-                    url: "/transport"
+                    url: "/car"
                 }
             }
         }
