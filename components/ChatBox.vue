@@ -1,133 +1,134 @@
+<!-- components/ChatBox.vue -->
 <template>
-    <div class="chatbox">
-        <div class="chat-messages" ref="messagesEnd">
-            <div v-for="(msg, i) in messages" :key="i" :class="['chat-message', msg.isUser ? 'from-user' : 'from-bot']">
-                <div class="chat-avatar">
-                    <span v-if="msg.isUser">🧑</span>
-                    <span v-else>🤖</span>
+    <div class="chat-box-container" :class="{ compact }">
+        <!-- Historial de mensajes -->
+        <div class="chat-messages" ref="messagesContainer">
+            <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
+                <div class="message-content">
+                    <div v-if="message.role === 'assistant'" class="assistant-avatar">AI</div>
+                    <div v-html="formatMessage(message.content)"></div>
                 </div>
-                <div class="chat-bubble">{{ msg.text }}</div>
+                <div class="message-time">{{ formatTime(message.timestamp) }}</div>
             </div>
+
+            <!-- Indicador de escritura -->
+            <div v-if="isTyping" class="message assistant typing">
+                <div class="message-content">
+                    <div class="assistant-avatar">AI</div>
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desplazamiento automático al final -->
+            <div ref="messagesEnd"></div>
         </div>
-        <form class="chat-form" @submit.prevent="onSend">
-            <input v-model="userInput" type="text" class="chat-input" placeholder="Escribe tu mensaje…"
-                :disabled="sending" @keydown.enter="onSend" autocomplete="off" />
-            <button class="chat-send" :disabled="sending || !userInput.trim()" type="submit">
-                Enviar
+
+        <!-- Sugerencias -->
+        <div v-if="suggestions && suggestions.length > 0" class="chat-suggestions">
+            <button v-for="(suggestion, idx) in suggestions" :key="idx" class="suggestion-button"
+                @click="$emit('suggestion-click', suggestion)">
+                {{ suggestion }}
             </button>
-        </form>
+        </div>
+
+        <!-- Área de entrada de mensaje -->
+        <div class="chat-input-area">
+            <input v-model="userMessage" type="text" placeholder="Escribe tu mensaje aquí..." @keyup.enter="sendMessage"
+                :disabled="isTyping" class="chat-input" />
+            <button @click="sendMessage" :disabled="!userMessage.trim() || isTyping" class="send-button">
+                <span>↑</span>
+            </button>
+        </div>
     </div>
 </template>
 
-<script setup>
-import { ref, nextTick, onMounted, watch } from 'vue'
-const { messages, sendMessage, fetchHistory, conversationId, initChat } = useChat()
+<script setup lang="ts">
+interface Message {
+    role: 'user' | 'assistant'
+    content: string
+    timestamp: string
+}
 
-const userInput = ref('')
-const sending = ref(false)
-const messagesEnd = ref(null)
+interface Props {
+    messages?: Message[]
+    isTyping?: boolean
+    suggestions?: string[]
+    compact?: boolean
+}
 
-onMounted(async () => {
-    const sessionId = localStorage.getItem('sessionId') || Date.now().toString()
-    localStorage.setItem('sessionId', sessionId)
-    await initChat(sessionId)
-    await fetchHistory()
+interface Emits {
+    (e: 'send-message', message: string): void
+    (e: 'suggestion-click', suggestion: string): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    messages: () => [],
+    isTyping: false,
+    suggestions: () => [],
+    compact: false
 })
 
-watch(messages, async () => {
-    await nextTick()
-    if (messagesEnd.value) {
-        messagesEnd.value.scrollTop = messagesEnd.value.scrollHeight
-    }
-})
+const emit = defineEmits<Emits>()
 
-const onSend = async () => {
-    if (!userInput.value.trim() || sending.value) return
-    sending.value = true
-    try {
-        await sendMessage(userInput.value)
-        userInput.value = ''
-    } finally {
-        sending.value = false
+const userMessage = ref('')
+const messagesContainer = ref<HTMLElement>()
+const messagesEnd = ref<HTMLElement>()
+
+const sendMessage = () => {
+    if (!userMessage.value.trim() || props.isTyping) return
+
+    emit('send-message', userMessage.value)
+    userMessage.value = ''
+}
+
+const scrollToBottom = () => {
+    const container = messagesContainer.value
+    const end = messagesEnd.value
+
+    if (container && end) {
+        container.scrollTop = container.scrollHeight
     }
 }
+
+const formatMessage = (text: string) => {
+    // Procesar URLs
+    const urlPattern = /(https?:\/\/[^\s]+)/g
+    return text
+        .replace(urlPattern, '<a href="$1" target="_blank">$1</a>')
+        .replace(/\n/g, '<br>')
+}
+
+const formatTime = (timestamp: string) => {
+    if (!timestamp) return ''
+
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+watch(
+    () => props.messages,
+    () => {
+        nextTick(() => {
+            scrollToBottom()
+        })
+    },
+    { deep: true }
+)
+
+watch(
+    () => props.isTyping,
+    () => {
+        nextTick(() => {
+            scrollToBottom()
+        })
+    }
+)
+
+onMounted(() => {
+    scrollToBottom()
+})
 </script>
-
-<style scoped>
-.chatbox {
-    background: #f8f9fa;
-    border-radius: 18px;
-    box-shadow: 0 2px 8px #0001;
-    padding: 1rem;
-    max-width: 540px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    height: 450px;
-}
-
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    margin-bottom: 1rem;
-    padding-right: 4px;
-}
-
-.chat-message {
-    display: flex;
-    align-items: flex-end;
-    margin-bottom: 10px;
-}
-
-.from-user {
-    flex-direction: row-reverse;
-}
-
-.chat-avatar {
-    font-size: 1.4em;
-    margin: 0 8px;
-}
-
-.chat-bubble {
-    padding: 10px 14px;
-    background: #e9ecef;
-    border-radius: 16px;
-    font-size: 1rem;
-    max-width: 75%;
-    word-break: break-word;
-}
-
-.from-user .chat-bubble {
-    background: #cce5ff;
-    color: #125488;
-}
-
-.chat-form {
-    display: flex;
-    gap: 8px;
-}
-
-.chat-input {
-    flex: 1;
-    border-radius: 12px;
-    border: 1px solid #d0d7de;
-    padding: 0.7rem;
-    font-size: 1rem;
-}
-
-.chat-send {
-    border-radius: 12px;
-    background: #2563eb;
-    color: #fff;
-    border: none;
-    padding: 0 1.4em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.chat-send:disabled {
-    background: #a5b4fc;
-    cursor: not-allowed;
-}
-</style>

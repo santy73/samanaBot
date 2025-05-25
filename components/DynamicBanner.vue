@@ -1,60 +1,151 @@
+<!-- components/DynamicBanner.vue -->
 <template>
-    <div v-if="banner" class="dynamic-banner">
-        <h2 class="banner-title">{{ banner.title }}</h2>
-        <p class="banner-message">{{ banner.message }}</p>
-        <div v-if="banner.link" class="banner-action">
-            <a :href="banner.link" target="_blank" class="banner-btn">{{ banner.linkText || 'Ver más' }}</a>
+    <div class="banner-container" :style="bannerStyle">
+        <div class="banner-content">
+            <h2 class="banner-title">{{ title }}</h2>
+            <p class="banner-subtitle">{{ subtitle }}</p>
+
+            <button v-if="action" @click="$emit('action-click', action)" class="banner-action">
+                {{ action.text }}
+            </button>
         </div>
     </div>
 </template>
 
-<script setup>
-import { onMounted } from 'vue'
-const { banner, fetchBanner } = useBanner()
+<script setup lang="ts">
+interface BannerAction {
+    text: string
+    url: string
+}
 
-onMounted(() => {
-    fetchBanner('general')
+interface Banner {
+    title?: string
+    subtitle?: string
+    imageUrl?: string
+    action?: BannerAction
+}
+
+interface Props {
+    banner?: Banner
+}
+
+interface Emits {
+    (e: 'action-click', action: BannerAction): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    banner: () => ({
+        title: "Descubre Samaná",
+        subtitle: "Un paraíso en República Dominicana",
+        imageUrl: "/assets/images/banner_general.jpg",
+        action: {
+            text: "Explorar",
+            url: "/explore"
+        }
+    })
+})
+
+const emit = defineEmits<Emits>()
+
+const title = computed(() => {
+    return props.banner?.title || "Descubre Samaná"
+})
+
+const subtitle = computed(() => {
+    return props.banner?.subtitle || "Un paraíso en República Dominicana"
+})
+
+const action = computed(() => {
+    return props.banner?.action || { text: "Explorar", url: "/explore" }
+})
+
+const bannerStyle = computed(() => {
+    const imageUrl = props.banner?.imageUrl || "/assets/images/banner_general.jpg"
+    return {
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('${imageUrl}')`
+    }
 })
 </script>
 
 <style scoped>
-.dynamic-banner {
-    background: linear-gradient(90deg, #2563eb 0%, #00b4d8 100%);
-    color: #fff;
-    padding: 2.3rem 1.2rem;
-    border-radius: 18px;
-    margin-bottom: 2.2rem;
-    box-shadow: 0 3px 14px #0002;
+.banner-container {
+    width: 100%;
+    height: 300px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
     text-align: center;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.banner-content {
+    max-width: 700px;
+    padding: 20px;
+    z-index: 1;
 }
 
 .banner-title {
-    margin: 0 0 0.5em 0;
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 36px;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-.banner-message {
-    font-size: 1.1rem;
-    margin-bottom: 1em;
+.banner-subtitle {
+    font-size: 18px;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .banner-action {
-    margin-top: 1em;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.banner-btn {
-    background: #fff;
-    color: #2563eb;
-    padding: 0.6em 2em;
-    border-radius: 99px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background 0.18s;
-    box-shadow: 0 1px 4px #0001;
+.banner-action:hover {
+    background-color: #0069d9;
 }
 
-.banner-btn:hover {
-    background: #e0e7ff;
+@media (max-width: 768px) {
+    .banner-container {
+        height: 250px;
+    }
+
+    .banner-title {
+        font-size: 28px;
+    }
+
+    .banner-subtitle {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner-container {
+        height: 200px;
+    }
+
+    .banner-title {
+        font-size: 24px;
+    }
+
+    .banner-subtitle {
+        font-size: 14px;
+    }
+
+    .banner-action {
+        padding: 8px 20px;
+        font-size: 14px;
+    }
 }
 </style>

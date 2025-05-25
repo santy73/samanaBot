@@ -1,20 +1,14 @@
 <template>
     <div class="home-page">
-        <DynamicBanner class="mb-8" />
-
-        <!-- Menú principal de navegación, puedes ajustar según tu diseño -->
         <nav class="main-nav">
             <ul>
-                <li><a href="/" class="nav-link" :class="{ active: currentSection === 'home' }"
-                        @click.prevent="goSection('home')">Inicio</a></li>
-                <li><a href="#resultados" class="nav-link" :class="{ active: currentSection === 'results' }"
-                        @click.prevent="goSection('results')">Resultados</a></li>
-                <li><a href="#chat" class="nav-link" :class="{ active: currentSection === 'chat' }"
-                        @click.prevent="goSection('chat')">Chat</a></li>
+                <li><a href="#" class="nav-link active">Inicio</a></li>
+                <li><a href="#" class="nav-link">Resultados</a></li>
+                <li><a href="#" class="nav-link">Chat</a></li>
             </ul>
         </nav>
 
-        <section v-if="currentSection === 'home'" class="section-home">
+        <section class="section-home">
             <h1>Bienvenido a Samaná Inn</h1>
             <p class="intro-text">
                 Descubre los mejores alojamientos, experiencias y restaurantes de Samaná.
@@ -22,34 +16,14 @@
             </p>
         </section>
 
-        <section v-if="currentSection === 'results'" id="resultados" class="section-results">
-            <ResultsDisplay />
-        </section>
-
-        <section v-if="currentSection === 'chat'" id="chat" class="section-chat">
-            <ChatInterface />
+        <section class="section-chat">
+            <ChatBox />
         </section>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-// Si usas rutas, puedes integrar useRoute/useRouter de Nuxt, aquí navega por sección interna
-const currentSection = ref('home')
-
-function goSection(section) {
-    currentSection.value = section
-    if (typeof window !== 'undefined') {
-        if (section === 'results') {
-            window.scrollTo({ top: document.getElementById('resultados')?.offsetTop || 0, behavior: 'smooth' })
-        } else if (section === 'chat') {
-            window.scrollTo({ top: document.getElementById('chat')?.offsetTop || 0, behavior: 'smooth' })
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-        }
-    }
-}
+// Nada, todo automático
 </script>
 
 <style scoped>
@@ -102,7 +76,6 @@ function goSection(section) {
     margin-bottom: 3rem;
 }
 
-.section-results,
 .section-chat {
     margin-top: 3rem;
 }
